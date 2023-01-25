@@ -1,7 +1,7 @@
 package scala
 
 package scala3
-
+/*
 //1. исполользовать given, как написано в комментариях и в почеченных местах ниже
 //2. использовать новый "тихий синтаксис", где сочтете приемлемым, тут на ваше усмотрение
 //https://docs.scala-lang.org/scala3/new-in-scala3.html  глава New & Shiny: The Syntax
@@ -81,4 +81,4 @@ object TestExecution{
 
     println(result.map(x=>s"${x.model},${x.mark},${x.year}").mkString(";"))
   }
-}
+}*/
