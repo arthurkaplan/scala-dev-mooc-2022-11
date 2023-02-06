@@ -3,7 +3,6 @@ package module1
 import java.util.UUID
 import scala.annotation.tailrec
 import java.time.Instant
-
 import scala.language.postfixOps
 
 
@@ -13,7 +12,7 @@ import scala.language.postfixOps
  */
 
 
- object referential_transparency{
+object referential_transparency{
 
   case class Abiturient(id: String, email: String, fio: String)
 
@@ -54,7 +53,7 @@ import scala.language.postfixOps
 }
 
 
- // recursion
+// recursion
 
 object recursion {
 
@@ -101,37 +100,37 @@ object recursion {
 
 object hof{
 
-   trait Consumer{
-       def subscribe(topic: String): LazyList[Record]
-   }
+  trait Consumer{
+    def subscribe(topic: String): LazyList[Record]
+  }
 
-   case class Record(value: String)
+  case class Record(value: String)
 
-   case class Request()
-   
-   object Request {
-       def parse(str: String): Request = ???
-   }
+  case class Request()
+
+  object Request {
+    def parse(str: String): Request = ???
+  }
 
   /**
    *
    * Реализовать ф-цию, которая будет читать записи Request из топика,
    * и сохранять их в базу
    */
-   def createRequestSubscription() = {
-     val cons: Consumer = ???
-     val stream: LazyList[Record] = cons.subscribe("request")
-     stream.foreach{ r =>
-       val req = Request.parse(r.value)
-       // save to DB
-     }
-   }
+  def createRequestSubscription() = {
+    val cons: Consumer = ???
+    val stream: LazyList[Record] = cons.subscribe("request")
+    stream.foreach{ r =>
+      val req = Request.parse(r.value)
+      // save to DB
+    }
+  }
 
-   def createSubscription[T](topic: String)(f: LazyList[Record] => T): T = {
-     val cons: Consumer = ???
-     val stream = cons.subscribe(topic)
-     f(stream)
-   }
+  def createSubscription[T](topic: String)(f: LazyList[Record] => T): T = {
+    val cons: Consumer = ???
+    val stream = cons.subscribe(topic)
+    f(stream)
+  }
 
   def createRequestSubscription2() = createSubscription("request"){ l =>
     l.foreach{ r =>
@@ -140,7 +139,7 @@ object hof{
     }
   }
 
-  
+
 
   // обертки
 
@@ -171,7 +170,7 @@ object hof{
   def isOdd(i: Int): Boolean = i % 2 > 0
 
   def not[A](f: A => Boolean): A => Boolean = a => !f(a)
-  
+
   lazy val isEven: Int => Boolean = not(isOdd)
 
 
@@ -203,7 +202,7 @@ object hof{
  */
 
 
- object opt {
+object opt {
 
   /**
    *
@@ -211,11 +210,7 @@ object hof{
    */
 
   // Covariant - animal родитель dog, Option[Animal] родитель Option[Dog]
-
-
-
   // Contravariant - animal родитель dog, Option[Dog] родитель Option[Animal]
-
   // Invariant - нет отношений
 
   // Вопрос вариантности
@@ -234,19 +229,28 @@ object hof{
       case Option.None => Option.None
     }
 
-  }
+    def printIfAny(): Unit = this match {
+      case Option.Some(v) => println(v)
+      case _ =>
+    }
 
+    def filter(f: T => Boolean): Option[T] = this match {
+      case Option.Some(v) if f(v) => Option(v)
+      case _ => Option.None
+    }
+  }
 
   object Option {
     case class Some[T](v: T) extends Option[T]
     case object None extends Option[Nothing]
 
     def apply[T](v: T): Option[T] = Some(v)
+
+    def zip[A, B](v1: Option[A], v2: Option[B]): Option[(A, B)] = (v1, v2) match {
+      case (Option.Some(t1), Option.Some(t2)) => Option((t1, t2))
+      case _ => Option.None
+    }
   }
-
-
-
-
 
 
   /**
@@ -267,80 +271,113 @@ object hof{
    * в случае если исходный не пуст и предикат от значения = true
    */
 
- }
+}
 
- object list {
-   /**
-    *
-    * Реализовать односвязанный иммутабельный список List
-    * Список имеет два случая:
-    * Nil - пустой список
-    * Cons - непустой, содердит первый элемент (голову) и хвост (оставшийся список)
-    */
+object list {
+  /**
+   *
+   * Реализовать односвязанный иммутабельный список List
+   * Список имеет два случая:
+   * Nil - пустой список
+   * Cons - непустой, содердит первый элемент (голову) и хвост (оставшийся список)
+   */
 
-   trait List[+T] {
-     def ::[TT >: T](elem: TT): List[TT] = ???
-   }
+  trait List[+T] {
+    def ::[TT >: T](elem: TT): List[TT] = List.::(elem, this)
 
-   object List {
-     case class ::[A](head: A, tail: List[A]) extends List[A]
-     case object Nil extends List[Nothing]
+    def mkString(sep: String): String = toString
 
-     def apply[A](v: A*): List[A] =
-       if(v.isEmpty) Nil else ::(v.head, apply(v.tail:_*))
-   }
+    def reverse(): List[T] = {
 
-   List(1, 2, 3)
+      @tailrec
+      def _reverse(acc: List[T], tail: List[T]): List[T] = {
+        tail match {
+          case List.::(head, tail) => _reverse(acc.::(head), tail)
+          case _ => acc
+        }
+      }
+      _reverse(List.Nil, this)
+    }
+
+    def map[B](f: T => B): List[B] = {
+      this match {
+        case List.::(head, tail) => tail.map(f).::(f(head))
+        case List.Nil => List.Nil
+      }
+    }
+
+    def filter(f: T => Boolean): List[T] = {
+      this match {
+        case List.::(head, tail) if f(head) => tail.filter(f).::(head)
+        case List.::(_, tail) => tail.filter(f)
+        case List.Nil => List.Nil
+      }
+    }
+  }
+
+  object List {
+    case class ::[A](head: A, tail: List[A]) extends List[A] {
+      override def mkString(sep: String): String = {
+        head.toString + sep + tail.mkString(sep)
+      }
+    }
+    case object Nil extends List[Nothing]
+
+    def apply[A](v: A*): List[A] =
+      if(v.isEmpty) Nil else ::(v.head, apply(v.tail:_*))
+
+    def intList(p: List[Int]): List[Int] = p.map(k => k + 1)
+
+    def shoutList(p: List[String]): List[String] = p.map(k => k + "!")
+  }
+
+  val v: List[Int] = List(1, 2, 3).::(0)
+
+  /**
+   * Метод cons, добавляет элемент в голову списка, для этого метода можно воспользоваться названием `::`
+   *
+   */
+
+  /**
+   * Метод mkString возвращает строковое представление списка, с учетом переданного разделителя
+   *
+   */
+
+  /**
+   * Конструктор, позволяющий создать список из N - го числа аргументов
+   * Для этого можно воспользоваться *
+   *
+   * Например вот этот метод принимает некую последовательность аргументов с типом Int и выводит их на печать
+   * def printArgs(args: Int*) = args.foreach(println(_))
+   */
+
+  /**
+   *
+   * Реализовать метод reverse который позволит заменить порядок элементов в списке на противоположный
+   */
+
+  /**
+   *
+   * Реализовать метод map для списка который будет применять некую ф-цию к элементам данного списка
+   */
 
 
+  /**
+   *
+   * Реализовать метод filter для списка который будет фильтровать список по некому условию
+   */
+
+  /**
+   *
+   * Написать функцию incList котрая будет принимать список Int и возвращать список,
+   * где каждый элемент будет увеличен на 1
+   */
 
 
+  /**
+   *
+   * Написать функцию shoutString котрая будет принимать список String и возвращать список,
+   * где к каждому элементу будет добавлен префикс в виде '!'
+   */
 
-   /**
-     * Метод cons, добавляет элемент в голову списка, для этого метода можно воспользоваться названием `::`
-     *
-     */
-
-    /**
-      * Метод mkString возвращает строковое представление списка, с учетом переданного разделителя
-      *
-      */
-
-    /**
-      * Конструктор, позволяющий создать список из N - го числа аргументов
-      * Для этого можно воспользоваться *
-      * 
-      * Например вот этот метод принимает некую последовательность аргументов с типом Int и выводит их на печать
-      * def printArgs(args: Int*) = args.foreach(println(_))
-      */
-
-    /**
-      *
-      * Реализовать метод reverse который позволит заменить порядок элементов в списке на противоположный
-      */
-
-    /**
-      *
-      * Реализовать метод map для списка который будет применять некую ф-цию к элементам данного списка
-      */
-
-
-    /**
-      *
-      * Реализовать метод filter для списка который будет фильтровать список по некому условию
-      */
-
-    /**
-      *
-      * Написать функцию incList котрая будет принимать список Int и возвращать список,
-      * где каждый элемент будет увеличен на 1
-      */
-
-
-    /**
-      *
-      * Написать функцию shoutString котрая будет принимать список String и возвращать список,
-      * где к каждому элементу будет добавлен префикс в виде '!'
-      */
-
- }
+}
