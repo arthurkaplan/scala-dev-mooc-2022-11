@@ -1,5 +1,5 @@
 import module1.threads.{Thread1, ToyFuture, getRatesLocation1, getRatesLocation2, getRatesLocation3, getRatesLocation4, getRatesLocation5, getRatesLocation6, printRunningTime}
-import module1.{functions, future, promise, type_system}
+import module1.{functions, future, list, opt, promise, type_system}
 import module2.implicits.{implicit_conversions, implicit_scopes}
 import module3.functional_effects
 import functional_effects.functionalProgram.declarativeEncoding
@@ -12,7 +12,46 @@ object Main{
 
   def main(args: Array[String]): Unit = {
 
-//    val t1 = new Thread1
+
+    val opt1 = opt.Option("value1")
+    opt1.printIfAny()
+
+    //val opt2 = opt.Option(123).filter(v => v == 124)
+    val opt2 = opt.Option.None.filter(v => v == 124)
+    opt2.printIfAny()
+
+    println("-----")
+    val opt3 = opt.Option.zip(opt.Option.None, opt.Option("value"))
+    opt3.printIfAny()
+
+    println("-----")
+    val list1 = list.List(2, 3, 4)
+    println(list1)
+    println(list1.mkString("->"))
+    val list2 = list1.::(1)
+    println(list2)
+    println(list.List.Nil.::("value123"))
+    println("-----")
+    println(list2.reverse())
+    println(list.List(1))
+    println(list.List.Nil)
+
+    println("-----")
+    val list3: list.List[String] = list2.map(x => x + "abcd")
+    println(list3)
+
+    println("-----")
+    println(list2.filter(x => x >= 3))
+    println(list.List.Nil)
+
+    println("-----")
+    println(list.List.shoutList(list3))
+    println(list.List.intList(list2))
+
+
+
+
+    //    val t1 = new Thread1
 //    val t2 = new Thread1
 //    t1.start()
 //    t1.join()
@@ -66,9 +105,9 @@ object Main{
     // implicit_scopes.result
   //  println(s"Hello, from ${Thread.currentThread().getName}")
 
-    val r: executableEncoding.Console[Unit] = executableEncoding.p3
-    val r2: declarativeEncoding.Console[Unit] = declarativeEncoding.p2
-    declarativeEncoding.interpret(r2)
+   // val r: executableEncoding.Console[Unit] = executableEncoding.p3
+    //val r2: declarativeEncoding.Console[Unit] = declarativeEncoding.p2
+    //declarativeEncoding.interpret(r2)
   }
 
 }
