@@ -16,7 +16,7 @@ object task_collections {
    *
    * **/
   def capitalizeIgnoringASCII(text: List[String]): List[String] = {
-    List.empty
+    text.head :: text.tail.map(x => if (isASCIIString(x)) x.toUpperCase else x.toLowerCase)
   }
 
   /**
@@ -29,7 +29,14 @@ object task_collections {
    * HINT: Для всех возможных комбинаций чисел стоит использовать Map
    * **/
   def numbersToNumericString(text: String): String = {
-    ""
+    val map = Map('0' -> "zero", '1' -> "one", '2' -> "two", '3' -> "three", '4' -> "four", '9' -> "nine")
+
+    text.toList.flatMap(x => {
+      map.get(x) match {
+        case Some(value) => value.toList
+        case _ => List(x)
+      }
+    }).mkString
   }
 
   /**
@@ -47,7 +54,12 @@ object task_collections {
    * Реализуйте метод который примет две коллекции (два источника) и вернёт объединенный список уникальный значений
    **/
   def intersectionAuto(dealerOne: Iterable[Auto], dealerTwo: Iterable[Auto]): Iterable[Auto] = {
-    Iterable.empty
+    val autos: Iterable[(Auto, Auto)] = for {
+      one <- dealerOne
+      two <- dealerTwo
+    } yield {(one, two)}
+
+    autos.flatMap(pair => List(pair._1, pair._2)).toSet
   }
 
   /**
@@ -56,6 +68,9 @@ object task_collections {
    * и вернёт уникальный список машин обслуживающихся в первом дилерском центре и не обслуживающимся во втором
    **/
   def filterAllLeftDealerAutoWithoutRight(dealerOne: Iterable[Auto], dealerTwo: Iterable[Auto]): Iterable[Auto] = {
-    Iterable.empty
+    val autos = for {
+      one <- dealerOne if !dealerTwo.exists(x => x == one)
+    } yield one
+    autos.toSet
   }
 }
